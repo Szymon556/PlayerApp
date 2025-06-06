@@ -1,37 +1,24 @@
-//  spotifyApi.kt  – tylko metoda searchTrack zmieniona
 package com.example.playerapp.network
 
+import android.content.Context
+import android.util.Log
 import com.example.playerapp.model.Track
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.*
+import okhttp3.HttpUrl
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONObject
-import android.util.Base64
 
 object SpotifyApi {
-    private const val clientId = "9912a037a40f4392829a8d0a487b5a72"
-    private const val clientSecret = "b438d72b8c1e42efbe601a287baccf18"
-    private var accessToken: String? = null
-
-    private suspend fun ensureToken() {
-        if (accessToken != null) return
-        withContext(Dispatchers.IO) {
-            val creds = "$clientId:$clientSecret"
-            val basic = Base64.encodeToString(creds.toByteArray(), Base64.NO_WRAP)
-            val body = FormBody.Builder().add("grant_type", "client_credentials").build()
-            val req = Request.Builder()
-                .url("https://accounts.spotify.com/api/token")
-                .post(body)
-                .addHeader("Authorization", "Basic $basic")
-                .build()
-            val res = OkHttpClient().newCall(req).execute()
-            val json = JSONObject(res.body!!.string())
-            accessToken = json.getString("access_token")
+    suspend fun searchTrack(context: Context, query: String): List<Track> = withContext(Dispatchers.IO) {
+        SpotifyAuthManager.refreshTokenIfNeeded(context)
+        val token = SpotifyAuthManager.getAccessToken(context)
+        if (token.isNullOrEmpty()) {
+            Log.e("SpotifyApi", "No access token available")
+            return@withContext emptyList<Track>()
         }
-    }
 
-    suspend fun searchTrack(query: String): List<Track> = withContext(Dispatchers.IO) {
-        ensureToken()
         val url = HttpUrl.Builder()
             .scheme("https")
             .host("api.spotify.com")
@@ -43,11 +30,14 @@ object SpotifyApi {
 
         val req = Request.Builder()
             .url(url)
-            .addHeader("Authorization", "Bearer $accessToken")
+            .addHeader("Authorization", "Bearer $token")
             .build()
 
         val res = OkHttpClient().newCall(req).execute()
-        if (!res.isSuccessful) return@withContext emptyList<Track>()
+        if (!res.isSuccessful) {
+            Log.e("SpotifyApi", "API request failed: ${res.code}")
+            return@withContext emptyList<Track>()
+        }
 
         val arr = JSONObject(res.body!!.string())
             .getJSONObject("tracks")
