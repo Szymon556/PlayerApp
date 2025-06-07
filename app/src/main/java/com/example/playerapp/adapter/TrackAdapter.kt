@@ -24,7 +24,7 @@ class TrackAdapter(private val tracks: List<Track>) :
 
     override fun onBindViewHolder(holder: TrackViewHolder, position: Int) {
         val track = tracks[position]
-        holder.trackName.text = track.name
+        holder.trackName.text = track.title
         holder.artistName.text = track.artist
     }
 

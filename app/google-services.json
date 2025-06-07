@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "826698898963",
+    "project_id": "playerapp-f62ca",
+    "storage_bucket": "playerapp-f62ca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:826698898963:android:bccee5e235ed2e1da0e9e6",
+        "android_client_info": {
+          "package_name": "com.example.playerapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUc-7ZXesOsxzQFk8R2pM9JA5sW_71D8s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

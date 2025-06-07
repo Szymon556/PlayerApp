@@ -11,7 +11,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import com.example.playerapp.model.SpotifyUser
-
+import com.example.playerapp.firebase.FirebaseRealtimeRepository
 
 object SpotifyApi {
 
@@ -76,10 +76,13 @@ object SpotifyApi {
         }
 
         val json = JSONObject(res.body!!.string())
-        SpotifyUser(
+        val user = SpotifyUser(
             id = json.getString("id"),
             displayName = json.optString("display_name", "Unknown"),
             email = json.optString("email", "")
         )
+
+        FirebaseRealtimeRepository.saveUser(user)  // <-- zapis do Firestore
+        return@withContext user
     }
 }
