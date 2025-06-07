@@ -3,36 +3,44 @@ package com.example.playerapp
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.playerapp.adapter.TrackAdapter
 import com.example.playerapp.model.Track
+import com.example.playerapp.model.SpotifyUser
 import com.example.playerapp.network.SpotifyApi
 import com.example.playerapp.network.SpotifyAuthManager
 import kotlinx.coroutines.launch
 import android.content.Intent
+
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var trackList: RecyclerView
     private lateinit var searchInput: EditText
     private lateinit var searchButton: Button
-    private lateinit var logoutButton: Button
+    private lateinit var userNameView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Inicjalizacja widoków
         searchInput = findViewById(R.id.searchInput)
         searchButton = findViewById(R.id.searchButton)
-        logoutButton = findViewById(R.id.logoutButton)
         trackList = findViewById(R.id.trackList)
+        userNameView = findViewById(R.id.userNameView)
+
         trackList.layoutManager = LinearLayoutManager(this)
 
-        // Obsługa wyszukiwania
+        // Pobierz dane użytkownika
+        lifecycleScope.launch {
+            val user: SpotifyUser? = SpotifyApi.getCurrentUser(this@MainActivity)
+            userNameView.text = user?.displayName?.let { "Zalogowany jako: $it" } ?: "Nieznany użytkownik"
+        }
+
         searchButton.setOnClickListener {
             val query = searchInput.text.toString().trim()
             if (query.isNotBlank()) {
@@ -42,18 +50,16 @@ class MainActivity : ComponentActivity() {
                         trackList.adapter = TrackAdapter(results)
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        // np. Toast.makeText(this@MainActivity, "Błąd podczas wyszukiwania", Toast.LENGTH_SHORT).show()
+                        // Możesz dodać Toast z błędem
                     }
                 }
             }
         }
 
-        // Obsługa wylogowania
+        val logoutButton = findViewById<Button>(R.id.logoutButton)
         logoutButton.setOnClickListener {
             SpotifyAuthManager.logout(this)
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+            startActivity(Intent(this, StartupActivity::class.java))
             finish()
         }
     }
